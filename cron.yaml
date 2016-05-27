@@ -1,3 +1,5 @@
 cron:
 - url: /admin/getdata
   schedule: every 5 mins
+- url: /admin/geocode
+  schedule: every 1 mins

@@ -1,7 +1,9 @@
 import datetime
 import httplib
 import json
+import logging
 import re
+import urllib
 import webapp2
 
 from google.appengine.api import urlfetch
@@ -32,7 +34,7 @@ class GetDataHandler(webapp2.RequestHandler):
                     res.status_code, res.content))
 
         lines = res.content.splitlines()
-        entities = []
+        bulk_insertions = []
 
         for i in xrange(len(lines)):
             if '<tr id=row_' not in lines[i]:
@@ -40,7 +42,7 @@ class GetDataHandler(webapp2.RequestHandler):
 
             time_string = extract_td_text(lines[i + 1])
             incident_id = extract_td_text(lines[i + 2])
-            units = extract_td_text(lines[i + 4])
+            units = extract_td_text(lines[i + 4]).split()
             address = extract_td_text(lines[i + 5])
             type = extract_td_text(lines[i + 6])
 
@@ -54,21 +56,50 @@ class GetDataHandler(webapp2.RequestHandler):
             time = datetime.datetime.strptime(
                 time_string, '%m/%d/%Y %H:%M:%S %p')
 
-            # TODO: For each incident, create a task to convert its
-            # address to a (latitude, longitude), so we can easily
-            # draw the incident on a map.
-            entities.append(models.Incident(
-                id=incident_id,
-                address=address,
-                units=units.split(),
-                type=type,
-                time=time,
-                original_text=lines[i:i+8],
-            ))
+            incident = models.Incident.get_by_id(incident_id)
+            if incident:
+                # Have more units been dispatched for the incident? If
+                # so, update the number of units.
+                for current_unit in units:
+                    if current_unit not in incident.units:
+                        incident.units = set(incident.units + units)
+                        incident.put()
+                        break
+            else:
+                bulk_insertions.append(models.Incident(
+                        id=incident_id,
+                        address=address,
+                        units=units,
+                        type=type,
+                        time=time,
+                        original_text=lines[i:i+8],
+                ))
 
-        ndb.put_multi(entities)
+        if bulk_insertions:
+            ndb.put_multi(bulk_insertions)
+
+
+class GeocodeHandler(webapp2.RequestHandler):
+
+    def get(self):
+        for incident in models.Incident.query(
+            models.Incident.location == None).fetch(
+            config.GEOCODING_BATCH_SIZE):
+
+            url = ('https://maps.googleapis.com/maps/api/geocode/'
+                   'json?address={address}&key={key}').format(
+                address=urllib.quote_plus(
+                    incident.address + ', Seattle, WA, USA'),
+                key=config.GEOCODING_API_KEY)
+            logging.info('Geocoding request: %s', url)
+
+            res = json.loads(urlfetch.fetch(url).content)
+            location = res['results'][0]['geometry']['location']
+            incident.location = ndb.GeoPt(lat=location['lat'], lon=location['lng'])
+            incident.put()
 
 
 handlers = webapp2.WSGIApplication([
     ('/admin/getdata', GetDataHandler),
+    ('/admin/geocode', GeocodeHandler),
 ], debug=config.DEBUG)

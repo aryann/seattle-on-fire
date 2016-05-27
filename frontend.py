@@ -21,8 +21,16 @@ class GetIncidentsHandler(webapp2.RequestHandler):
         for incident in models.Incident.query(
             ndb.AND(models.Incident.time >= start,
                     models.Incident.time < limit)):
+
+            # Has the address been geocoded yet? If not, skip the
+            # record.
+            if not incident.location:
+                continue
+
             num_units = len(incident.units)
-            incidents.append((incident.address, num_units))
+            incidents.append((
+                    (incident.location.lat, incident.location.lon),
+                    num_units))
 
         self.response.headers['Content-Type'] = 'text/json'
         self.response.write(json.dumps(incidents, indent=2))
