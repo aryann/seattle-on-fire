@@ -7,6 +7,8 @@ handlers:
 - url: /admin/.*
   script: admin.handlers
   login: admin
+- url: /fe/.*
+  script: frontend.handlers
 
 libraries:
 - name: webapp2
