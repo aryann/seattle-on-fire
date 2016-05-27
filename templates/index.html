@@ -18,6 +18,10 @@
              background-color: lightgoldenrodyellow;
              border: 1px solid lightgrey;
              padding: 5px;
+             position: absolute;
+             top: 0;
+             right: 0;
+             z-index: 1;
          }
 
         </style>
@@ -51,20 +55,25 @@
          }
 
          function updateMap(map) {
-             center = {
-                 lat: 47.6097,
-                 lng: -122.3331
-             };
-	     var cityCircle = new google.maps.Circle({
-	         strokeColor: '#FF0000',
-	         strokeOpacity: 0.8,
-	         strokeWeight: 2,
-	         fillColor: '#FF0000',
-	         fillOpacity: 0.35,
-	         map: map,
-	         center: center,
-	         radius: 1000,
-	     });
+             var data, i, location, intensity;
+
+             data = {{ incidents }}
+
+             for (i = 0; i < data.length; i++) {
+                 location = data[i][0];
+                 intensity = data[i][1];
+
+                 new google.maps.Circle({
+	             strokeColor: '#FF0000',
+	             strokeOpacity: 0.8,
+	             strokeWeight: 2,
+	             fillColor: '#FF0000',
+	             fillOpacity: 0.35,
+	             map: map,
+	             center: {lat: location[0], lng: location[1]},
+	             radius: Math.sqrt(intensity) * 200,
+	         });
+             }
          }
         </script>
         <script src="https://maps.googleapis.com/maps/api/js?key={{ maps_api_key }}&callback=initMap&libraries=visualization"

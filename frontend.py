@@ -50,6 +50,9 @@ class MainHandler(webapp2.RequestHandler):
 
         now_pst = datetime.datetime.utcnow() - datetime.timedelta(hours=7)
 
+        # TODO: Make this cooler by creating a separate handler for
+        # getting the incidents, and using JavaScript to
+        # asynchronously pull the data.
         incidents = self.get_incidents(start, limit)
 
         template = config.JINJA_ENVIRONMENT.get_template('index.html')
