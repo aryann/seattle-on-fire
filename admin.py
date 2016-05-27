@@ -83,8 +83,9 @@ class GeocodeHandler(webapp2.RequestHandler):
 
     def get(self):
         for incident in models.Incident.query(
-            models.Incident.location == None).fetch(
-            config.GEOCODING_BATCH_SIZE):
+            models.Incident.location == None).order(
+                -models.Incident.time).fetch(
+                    config.GEOCODING_BATCH_SIZE):
 
             url = ('https://maps.googleapis.com/maps/api/geocode/'
                    'json?address={address}&key={key}').format(
