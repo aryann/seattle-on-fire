@@ -1,4 +1,5 @@
 import datetime
+import httplib
 import json
 import webapp2
 
@@ -18,7 +19,8 @@ class MainHandler(webapp2.RequestHandler):
         incidents = []
         for incident in models.Incident.query(
             ndb.AND(models.Incident.time >= start,
-                    models.Incident.time < limit)):
+                    models.Incident.time < limit)).fetch(
+                        config.MAX_INCIDENTS_TO_FETCH + 1):
 
             # Has the address been geocoded yet? If not, skip the
             # record.
@@ -54,6 +56,14 @@ class MainHandler(webapp2.RequestHandler):
         # getting the incidents, and using JavaScript to
         # asynchronously pull the data.
         incidents = self.get_incidents(start, limit)
+
+        if len(incidents) > config.MAX_INCIDENTS_TO_FETCH:
+            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.write(
+                "Sorry, but I can't display more than {0} incidents at a time. "
+                "Please choose a smaller time range.".format(config.MAX_INCIDENTS_TO_FETCH))
+            self.response.set_status(httplib.BAD_REQUEST)
+            return
 
         template = config.JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render({

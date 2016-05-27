@@ -19,3 +19,5 @@ JINJA_ENVIRONMENT = jinja2.Environment(
         'jinja2.ext.autoescape',
     ],
     autoescape=True)
+
+MAX_INCIDENTS_TO_FETCH = 500
