@@ -8,15 +8,13 @@ import config
 import models
 
 
-class GetIncidentsHandler(webapp2.RequestHandler):
+class MainHandler(webapp2.RequestHandler):
 
-    def parse_time(self, time_string):
+    def parse_rfc3339_time(self, time_string):
         return datetime.datetime.strptime(
-            time_string, '%Y%m%d%H%M')
+            time_string, '%Y-%m-%dT%H:%M:%S.%f')
 
-    def get(self):
-        start = self.parse_time(self.request.get('start'))
-        limit = self.parse_time(self.request.get('limit'))
+    def get_incidents(self, start, limit):
         incidents = []
         for incident in models.Incident.query(
             ndb.AND(models.Incident.time >= start,
@@ -31,11 +29,38 @@ class GetIncidentsHandler(webapp2.RequestHandler):
             incidents.append((
                     (incident.location.lat, incident.location.lon),
                     num_units))
+        return incidents
 
-        self.response.headers['Content-Type'] = 'text/json'
-        self.response.write(json.dumps(incidents, indent=2))
+    def get(self):
+        start = self.request.get('start')
+        limit = self.request.get('limit')
+        if start and limit:
+            start = self.parse_rfc3339_time(start)
+            limit = self.parse_rfc3339_time(limit)
+        elif start or limit:
+            self.redirect('/')
+            return
+        else:
+            # Gets the current time in PST. Note that this does not handle
+            # daylight savings! It's too much work and too tricky to
+            # support daylight savings, so I have favored a simple method
+            # that ignores daylight savings. :)
+            limit = datetime.datetime.utcnow() - datetime.timedelta(hours=7)
+            start = limit - datetime.timedelta(days=1)
+
+        now_pst = datetime.datetime.utcnow() - datetime.timedelta(hours=7)
+
+        incidents = self.get_incidents(start, limit)
+
+        template = config.JINJA_ENVIRONMENT.get_template('index.html')
+        self.response.write(template.render({
+            'start': start.isoformat('T'),
+            'limit': limit.isoformat('T'),
+            'incidents': json.dumps(incidents, indent=2),
+            'maps_api_key': config.MAPS_API_KEY,
+        }))
 
 
 handlers = webapp2.WSGIApplication([
-    ('/fe/getincidents', GetIncidentsHandler),
+    ('/', MainHandler),
 ], debug=config.DEBUG)

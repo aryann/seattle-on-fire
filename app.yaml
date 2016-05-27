@@ -7,7 +7,7 @@ handlers:
 - url: /admin/.*
   script: admin.handlers
   login: admin
-- url: /fe/.*
+- url: /.*
   script: frontend.handlers
 
 libraries:
