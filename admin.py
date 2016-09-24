@@ -54,7 +54,7 @@ class GetDataHandler(webapp2.RequestHandler):
             # point, this code should be amended to add timezone
             # information.
             time = datetime.datetime.strptime(
-                time_string, '%m/%d/%Y %H:%M:%S %p')
+                time_string, '%m/%d/%Y %I:%M:%S %p')
 
             incident = models.Incident.get_by_id(incident_id)
             if incident:
@@ -83,16 +83,20 @@ class GeocodeHandler(webapp2.RequestHandler):
 
     def get(self):
         for incident in models.Incident.query(
-            models.Incident.location == None).order(
-                -models.Incident.time).fetch(
-                    config.GEOCODING_BATCH_SIZE):
+                ndb.AND(
+                    models.Incident.location == None,
+                    models.Incident.geocoding_failed != True)).order(
+                        models.Incident.geocoding_failed, -models.Incident.time).fetch(
+                            config.GEOCODING_BATCH_SIZE):
 
+            logging.info('-' * 40)
+            logging.info('Geocoding address: %s', incident.address)
             url = ('https://maps.googleapis.com/maps/api/geocode/'
                    'json?address={address}&key={key}').format(
                 address=urllib.quote_plus(
                     incident.address + ', Seattle, WA, USA'),
                 key=config.GEOCODING_API_KEY)
-            logging.info('Geocoding request:\n  %s', url)
+            logging.info('Request:\n  %s', url)
 
             res = json.loads(urlfetch.fetch(url).content)
 
@@ -106,12 +110,15 @@ class GeocodeHandler(webapp2.RequestHandler):
             # of addresses.
             status = res['status']
             if status != 'OK':
-                logging.error('Could not geocode "%s"; status: %s',
-                              incident.address, status)
+                logging.error('Status: %s\n', status)
+
+                if status == 'ZERO_RESULTS':
+                    incident.geocoding_failed = True
+                    incident.put_async()
                 continue
 
             location = res['results'][0]['geometry']['location']
-            logging.info('"%s" -> %s', incident.address, location)
+            logging.info('Location: %s\n', location)
             incident.location = ndb.GeoPt(lat=location['lat'], lon=location['lng'])
             incident.put()
 

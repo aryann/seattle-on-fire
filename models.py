@@ -8,3 +8,4 @@ class Incident(ndb.Model):
     time = ndb.DateTimeProperty(required=True)
     units = ndb.StringProperty(repeated=True)
     original_text = ndb.TextProperty(repeated=True)
+    geocoding_failed = ndb.BooleanProperty()

@@ -12,6 +12,25 @@ indexes:
 
 - kind: Incident
   properties:
+  - name: geocoding_failed
+  - name: location
+  - name: time
+    direction: desc
+
+- kind: Incident
+  properties:
+  - name: location
+  - name: geocoding_failed
+
+- kind: Incident
+  properties:
+  - name: location
+  - name: geocoding_failed
+  - name: time
+    direction: desc
+
+- kind: Incident
+  properties:
   - name: location
   - name: time
     direction: desc
