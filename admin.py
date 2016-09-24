@@ -92,10 +92,26 @@ class GeocodeHandler(webapp2.RequestHandler):
                 address=urllib.quote_plus(
                     incident.address + ', Seattle, WA, USA'),
                 key=config.GEOCODING_API_KEY)
-            logging.info('Geocoding request: %s', url)
+            logging.info('Geocoding request:\n  %s', url)
 
             res = json.loads(urlfetch.fetch(url).content)
+
+            # See
+            # https://developers.google.com/maps/documentation/geocoding/intro#StatusCodes
+            # for status codes.
+            #
+            # The most common cause of geocoding failures is addresses
+            # that are cross-streets, like "3rd Av / Pike St". At some
+            # point, we should figure out how to geocode these types
+            # of addresses.
+            status = res['status']
+            if status != 'OK':
+                logging.error('Could not geocode "%s"; status: %s',
+                              incident.address, status)
+                continue
+
             location = res['results'][0]['geometry']['location']
+            logging.info('"%s" -> %s', incident.address, location)
             incident.location = ndb.GeoPt(lat=location['lat'], lon=location['lng'])
             incident.put()
 
