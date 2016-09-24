@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -o xtrace
+
+while true; do
+      curl "http://localhost:8080/admin/geocode"
+      sleep 5m
+done
