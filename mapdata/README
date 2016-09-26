@@ -1,0 +1,23 @@
+This directory includes data for the outline of the City of
+Seattle. The data are available at:
+https://data.seattle.gov/dataset/Shorelines/gf6u-sgut.
+
+The original/ directory contains the original data downloaded from
+http://data.seattle.gov.
+
+The modified/ directory contains a simplified version of
+original/Shorelines/WGS84/Shorelines.shp. The original Shapefile was
+modified using qgis (http://qgis.org). Two modifications were made:
+
+  1) All features were removed except features 2 and 107 (the
+     extraction expression used was "OBJECTID = 2 OR OBJECTID =
+     107"). Features 2 and 107 represent "mainland" Seattle and West
+     Seattle, respectively.
+
+  2) The geometry was simplified using a "Simplify tolerance" of
+     0.001. This leads to the number of vertices to go from 40,795 to
+     752, making it easier to render the map on a webpage, while still
+     preserving enough fidelity.
+
+The simplified versions are available as both a Shapefile and a
+GeoJSON file.
