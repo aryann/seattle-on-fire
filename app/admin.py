@@ -86,15 +86,22 @@ class GeocodeHandler(webapp2.RequestHandler):
                 ndb.AND(
                     models.Incident.location == None,
                     models.Incident.geocoding_failed != True)).order(
-                        models.Incident.geocoding_failed, -models.Incident.time).fetch(
+                        models.Incident.geocoding_failed,
+                        -models.Incident.time).fetch(
                             config.GEOCODING_BATCH_SIZE):
 
-            logging.info('-' * 40)
+            address = urllib.quote_plus(
+                # In the incident data, "/" is used to denote
+                # intersections (e.g., "3rd Ave / Pike St"). The
+                # Google Geocoding API does not understand "/" to mean
+                # an intersection, though; it uses "&", so we replace
+                # "/" with "&" in the address.
+                incident.address.replace('/', '&') + ', Seattle, WA, USA')
+
             logging.info('Geocoding address: %s', incident.address)
             url = ('https://maps.googleapis.com/maps/api/geocode/'
                    'json?address={address}&key={key}').format(
-                address=urllib.quote_plus(
-                    incident.address + ', Seattle, WA, USA'),
+                address=address,
                 key=config.GEOCODING_API_KEY)
             logging.info('Request:\n  %s', url)
 
