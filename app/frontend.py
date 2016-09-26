@@ -37,7 +37,6 @@ class MainHandler(webapp2.RequestHandler):
     def get(self):
         start = self.request.get('start')
         limit = self.request.get('limit')
-        print start, limit
         if start and limit:
             start = self.parse_rfc3339_time(start)
             limit = self.parse_rfc3339_time(limit)
