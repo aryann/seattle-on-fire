@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Seattle Fire Department 911 Dispatches</title>
+        <style>
+         #canvas {
+             background-color: grey;
+         }
+
+        </style>
+    </head>
+
+    <body>
+        <canvas id="canvas"></canvas>
+
+        <script>
+         var data = {{ data }};
+
+         var width = {{ width }};
+         var height = {{ height }};
+
+         var canvas = document.getElementById("canvas");
+         canvas.width  = width;
+         canvas.height = height;
+
+         var context = canvas.getContext("2d");
+
+         var imageData = context.createImageData(width, height);
+         for (var i = 0; i < width * height; i++) {
+             imageData.data[i * 4] = 0;
+             imageData.data[i * 4 + 1] = data[i];
+             imageData.data[i * 4 + 2] = 0;
+             imageData.data[i * 4 + 3] = 255;
+         }
+         context.putImageData(imageData, 0, 0);
+        </script>
+    </body>
+</html>

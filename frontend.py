@@ -5,6 +5,7 @@ import webapp2
 
 from google.appengine.ext import ndb
 
+import coordinate_utils
 import config
 import models
 
@@ -36,6 +37,7 @@ class MainHandler(webapp2.RequestHandler):
     def get(self):
         start = self.request.get('start')
         limit = self.request.get('limit')
+        print start, limit
         if start and limit:
             start = self.parse_rfc3339_time(start)
             limit = self.parse_rfc3339_time(limit)
@@ -74,6 +76,33 @@ class MainHandler(webapp2.RequestHandler):
         }))
 
 
+class CanvasHandler(webapp2.RequestHandler):
+
+    def get(self):
+        data = [255] * (coordinate_utils.CANVAS_WIDTH *
+                        coordinate_utils.CANVAS_HEIGHT)
+
+        for incident in models.Incident.query(
+                models.Incident.location != None).fetch(
+                    10000):
+            x, y = coordinate_utils.get_relative_placement(incident.location)
+
+            # Out of bounds? Just skip!
+            if not (0 <= x < coordinate_utils.CANVAS_WIDTH and
+                    0 <= y < coordinate_utils.CANVAS_HEIGHT):
+                continue
+
+            data[y * coordinate_utils.CANVAS_WIDTH + x] = 0
+
+        template = config.JINJA_ENVIRONMENT.get_template('canvas.html')
+        self.response.write(template.render({
+            'height': coordinate_utils.CANVAS_HEIGHT,
+            'width': coordinate_utils.CANVAS_WIDTH,
+            'data': json.dumps(data),
+        }))
+
+
 handlers = webapp2.WSGIApplication([
     ('/', MainHandler),
+    ('/canvas', CanvasHandler),
 ], debug=config.DEBUG)
