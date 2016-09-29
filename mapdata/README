@@ -10,8 +10,8 @@ original/Shorelines/WGS84/Shorelines.shp. The original Shapefile was
 modified using qgis (http://qgis.org). The following modifications
 were made:
 
-  1) All features were removed except features 2, and 107, 108, and
-     120 These features represent the most important parts of Seattle
+  1) All features were removed except features 2, 107, 108, and
+     120. These features represent the most important parts of Seattle
      like "mainland" Seattle and West Seattle.
 
   2) The geometry was simplified using a "Simplify tolerance" of
