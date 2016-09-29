@@ -7,17 +7,27 @@ http://data.seattle.gov.
 
 The modified/ directory contains a simplified version of
 original/Shorelines/WGS84/Shorelines.shp. The original Shapefile was
-modified using qgis (http://qgis.org). Two modifications were made:
+modified using qgis (http://qgis.org). The following modifications
+were made:
 
-  1) All features were removed except features 2 and 107 (the
-     extraction expression used was "OBJECTID = 2 OR OBJECTID =
-     107"). Features 2 and 107 represent "mainland" Seattle and West
-     Seattle, respectively.
+  1) All features were removed except features 2, and 107, 108, and
+     120 These features represent the most important parts of Seattle
+     like "mainland" Seattle and West Seattle.
 
   2) The geometry was simplified using a "Simplify tolerance" of
-     0.001. This leads to the number of vertices to go from 40,795 to
-     752, making it easier to render the map on a webpage, while still
-     preserving enough fidelity.
+     0.001. This led to the number of vertices to go from 40,795 to
+     771.
 
-The simplified versions are available as both a Shapefile and a
-GeoJSON file.
+  3) To further simplify the geometry, most rings inside the features
+     were removed. The only exception is Green Lake which is located
+     in feature 2.
+
+  4) Some of the vertices that added too much detail were also
+     removed. Examples include a vertex that represented the location
+     where Thornton Creek meets Lake Washington.
+
+In the end, the simplifications have led to the number of vertices to
+go from 40,000+ to a little over 300. Since the intent is to draw this
+map in an HTML canvas, it's important to minimize the number of
+vertices while still maintaining the shape of Seattle as much as
+possible.
