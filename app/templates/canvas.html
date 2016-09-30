@@ -15,6 +15,8 @@
         <canvas id="canvas"></canvas>
 
         <script>
+	 var seattleOutline = {{ seattleOutline }};
+
          var data = {{ data }};
 
          var width = {{ width }};
@@ -34,6 +36,17 @@
              imageData.data[i * 4 + 3] = 255;
          }
          context.putImageData(imageData, 0, 0);
+
+	 for (var i = 0; i < seattleOutline.length; i++) {
+	     var polygon = seattleOutline[i];
+
+	     context.beginPath();
+	     context.moveTo(polygon[0][0], polygon[0][1]);
+	     for (var j = 1; j < polygon.length; j++) {
+		 context.lineTo(polygon[j][0], polygon[j][1]);
+	     }
+	     context.stroke();
+	 }
         </script>
     </body>
 </html>

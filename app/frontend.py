@@ -93,11 +93,15 @@ class CanvasHandler(webapp2.RequestHandler):
 
             data[y * coordinate_utils.CANVAS_WIDTH + x] = 0
 
+        with open('seattle_outline.json') as f:
+            seattle_outline = f.read().strip()
+
         template = config.JINJA_ENVIRONMENT.get_template('canvas.html')
         self.response.write(template.render({
             'height': coordinate_utils.CANVAS_HEIGHT,
             'width': coordinate_utils.CANVAS_WIDTH,
             'data': json.dumps(data),
+            'seattleOutline': seattle_outline,
         }))
 
 
