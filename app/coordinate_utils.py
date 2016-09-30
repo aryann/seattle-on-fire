@@ -1,13 +1,12 @@
-import config
+import collections
 import math
 
-from google.appengine.api import datastore_types
+GeoPoint = collections.namedtuple('GeoPoint', ['lat', 'lon'])
 
 R_EARTH_METERS = 6371008.8
-SEATTLE_TOP_LEFT = (
-    datastore_types.GeoPt(47.742476, -122.450239))
-SEATTLE_BOTTOM_RIGHT = (
-    datastore_types.GeoPt(47.492421, -122.226049))
+SEATTLE_TOP_LEFT = GeoPoint(47.742476, -122.450239)
+SEATTLE_BOTTOM_RIGHT = GeoPoint(47.492421, -122.226049)
+
 
 def calculate_distance(a, b):
     """Returns the equirectangular approximation between two GPS

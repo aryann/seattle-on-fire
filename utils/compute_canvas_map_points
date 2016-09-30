@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+#
+# This is a utility that takes all of the polygons in a GeoJSON file,
+# and prints to standard out a list containing a list for each
+# polygon. The polygon lists will include (x, y) coordinates relative
+# to the coordinate boundaries defined in the coordinate_utils module.
+
+import json
+import os
+import sys
+
+
+if __name__ == '__main__':
+   sys.path.append(os.path.join(
+      os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+      'app'))
+
+   import coordinate_utils
+
+   if len(sys.argv) != 2:
+      raise ValueError('File path to GeoJSON file is missing.')
+
+   with open(sys.argv[1]) as f:
+      data = json.load(f)
+
+   results = []
+   for feature in data['features']:
+      coordinates = feature['geometry']['coordinates']
+      for polygon in coordinates:
+         results.append([
+            coordinate_utils.get_relative_placement(
+               coordinate_utils.GeoPoint(lat, lon))
+            for lon, lat in polygon])
+
+   json.dump(results, sys.stdout, separators=(',',':'))
+   sys.stdout.write(os.linesep)
